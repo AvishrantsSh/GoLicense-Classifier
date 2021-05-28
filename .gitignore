@@ -1,7 +1,10 @@
 __pycache__/
 *.py[cod]
+*.pyc
+*.yml
 *$py.class
 .Python
 build/
 dist/
 *.egg-info/
+.vscode

@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="testpkg_avishrantssh",
-    version="0.0.1",
+    version="0.0.3",
     author="AvishrantSh (Avishrant Sharma)",
     author_email="<avishrants@gmail.com>",
     description="A Python based License Classifier",
@@ -21,7 +21,7 @@ setuptools.setup(
         "Operating System :: POSIX :: Linux",
     ],
     package_dir={"": "src"},
-    package_data={'': ['py_my_lib.so']},
+    include_package_data=True,
     packages=setuptools.find_packages(where="src"),
     python_requires=">=3.6",
 )
