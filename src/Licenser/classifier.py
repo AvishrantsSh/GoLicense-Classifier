@@ -1,17 +1,16 @@
 import ctypes
-from os import listdir, walk
-from os.path import dirname, isdir, isfile, join
-from time import time
-
 from error import PathIsDir
-
+from os.path import join, dirname, isfile, isdir
+from os import walk, listdir
+from time import time
 
 class License:
     ROOT = dirname(__file__)
+
     # Shared Library
     so = ctypes.cdll.LoadLibrary(join(ROOT, "compiled/libmatch.so"))
     match = so.FindMatch
-    match.argtypes = [ctypes.c_char_p]
+    match.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
     match.restype = ctypes.c_char_p
 
     loadCustomLib = so.LoadCustomLicenses
@@ -29,8 +28,9 @@ class License:
         """Function to find a license match for file specified by `filepath`"""
         if isdir(filepath):
             raise PathIsDir
+
         exec_time = time()
-        res = self.match(filepath.encode("utf-8"))
+        res = self.match(License.ROOT.encode("utf-8"), filepath.encode("utf-8"))
         exec_time = time() - exec_time
         return res.decode("utf-8"), exec_time
 
@@ -45,14 +45,21 @@ class License:
             filepath = [root + f for f in listdir(root) if isfile(join(root, f))]
 
         filepath = "\n".join(filepath)
-        res = self.match(filepath.encode("utf-8"))
+        res = self.match(License.ROOT.encode("utf-8"), filepath.encode("utf-8"))
         exec_time = time() - exec_time
         return res.decode("utf-8"), exec_time
 
     def loadCustom(self, libpath):
-        """Load a custom set of licenses. Licenses should be named as `<license>.txt`"""
+        """Load a custom set of licenses"""
         _ = self.loadCustomLib(libpath.encode("utf-8"))
 
     def setThreshold(self, thresh):
-        """Set a threshold between `0 - 100`. Default is `80`. Speed Degrades with lower threshold."""
+        """Set a threshold between `0 - 100`. Default is `80`. Speed Degrades with lower threshold"""
         _ = self.setThresh(thresh)
+
+
+l = License()
+l.setThreshold(75)
+res, exec_tm = l.catalogueDir("/home/avishrant/GitRepo/scancode.io/", searchSubDir=False)
+print(res)
+print(exec_tm)
