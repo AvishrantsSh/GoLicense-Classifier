@@ -4,8 +4,8 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="testpkg_avishrantssh",
-    version="0.0.5",
+    name="golicense_classifier",
+    version="0.0.1",
     author="AvishrantSh (Avishrant Sharma)",
     author_email="<avishrants@gmail.com>",
     description="A Python based License Classifier",

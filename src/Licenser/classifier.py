@@ -58,11 +58,3 @@ class LicenseClassifier:
         """Set a threshold between `0 - 100`. Default is `80`. Speed Degrades with lower threshold"""
         _ = self._setThresh(thresh)
 
-
-l = LicenseClassifier()
-l.setThreshold(75)
-res, exec_tm = l.catalogueDir(
-    "/home/avishrant/GitRepo/scancode.io/", searchSubDir=False
-)
-print(res)
-print(exec_tm)
