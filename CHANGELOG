@@ -2,4 +2,5 @@ Change Log
 ==========
 0.0.2 (27/05/2021)
 ------------------
-- Alpha Release
+- Add Support for JSON Output
+- Copyright Detection Improvements

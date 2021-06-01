@@ -1,6 +1,6 @@
 import ctypes
 from .error import *
-from os.path import join, dirname, isfile, isdir
+from os.path import join, dirname, isfile, isdir, exists
 from os import walk, listdir
 from time import time
 
@@ -37,13 +37,19 @@ class LicenseClassifier:
 
     def catalogueDir(self, root, searchSubDir=True):
         """Function to find a license match for all files present in `root`"""
+        if not exists(root):
+            raise FileNotFoundError
+
         exec_time = time()
         filepath = list()
+        if isfile(root):
+            raise PathIsFile
+
         if searchSubDir:
             for (dirpath, _, filenames) in walk(root):
-                filepath += [dirpath + f for f in filenames]
+                filepath += [join(dirpath, f) for f in filenames]
         else:
-            filepath = [root + f for f in listdir(root) if isfile(join(root, f))]
+            filepath = [join(root, f) for f in listdir(root) if isfile(join(root, f))]
 
         filepath = "\n".join(filepath)
         res = self._match(LicenseClassifier._ROOT.encode("utf-8"), filepath.encode("utf-8"))
