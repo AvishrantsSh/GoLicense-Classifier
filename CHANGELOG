@@ -1,6 +1,5 @@
 Change Log
 ==========
-0.0.2 (27/05/2021)
+0.0.3 (02/06/2021)
 ------------------
-- Add Support for JSON Output
-- Copyright Detection Improvements
+- Set Limit for maximum Goroutines.
