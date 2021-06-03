@@ -1,5 +1,5 @@
 import ctypes
-from Licenser.error import *
+from LicenseClassifier.error import *
 from os.path import join, dirname, isfile, isdir, exists
 from os import walk, listdir
 from time import time
@@ -57,6 +57,12 @@ class LicenseClassifier:
 
     def loadCustom(self, libpath):
         """Load a custom set of licenses"""
+        if not exists(libpath):
+            raise FileNotFoundError
+
+        if isfile(libpath):
+            raise PathIsFile
+
         _ = self._loadCustomLib(libpath.encode("utf-8"))
 
     def setThreshold(self, thresh):
