@@ -14,10 +14,6 @@ class LicenseClassifier:
     _match.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p]
     _match.restype = ctypes.c_char_p
 
-    _loadCustomLib = _so.LoadCustomLicenses
-    _loadCustomLib.argtypes = [ctypes.c_char_p]
-    _loadCustomLib.restype = ctypes.c_int
-
     _setThresh = _so.SetThreshold
     _setThresh.argtypes = [ctypes.c_int]
     _setThresh.restype = ctypes.c_int
@@ -64,16 +60,6 @@ class LicenseClassifier:
             output.encode("utf-8"),
         )
         return res.decode("utf-8")
-
-    def loadCustom(self, libpath):
-        """Load a custom set of licenses"""
-        if not exists(libpath):
-            raise FileNotFoundError
-
-        if isfile(libpath):
-            raise PathIsFile
-
-        _ = self._loadCustomLib(libpath.encode("utf-8"))
 
     def setThreshold(self, thresh):
         """Set a threshold between `0 - 100`. Default is `80`. Speed Degrades with lower threshold"""
