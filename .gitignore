@@ -10,3 +10,4 @@ dist/
 .vscode
 env
 *.json
+src/test.py
