@@ -1,8 +1,7 @@
 import ctypes
-from os import listdir, walk
-from os.path import dirname, exists, isdir, isfile, join
+from os.path import dirname, exists, join
 
-from LicenseClassifier.error import PathIsDir, PathIsFile
+from LicenseClassifier.error import *
 
 
 class LicenseClassifier:
@@ -12,11 +11,11 @@ class LicenseClassifier:
     _so = ctypes.cdll.LoadLibrary(join(_ROOT, "compiled/libmatch.so"))
     _match = _so.FindMatch
     _match.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p]
-    _match.restype = ctypes.c_char_p
+    _match.restype = ctypes.c_bool
 
     _setThresh = _so.SetThreshold
     _setThresh.argtypes = [ctypes.c_int]
-    _setThresh.restype = ctypes.c_int
+    _setThresh.restype = ctypes.c_bool
 
     def __init__(self):
         pass
@@ -32,7 +31,7 @@ class LicenseClassifier:
             output.encode("utf-8"),
         )
         return res
-        
+
     def setThreshold(self, thresh):
         """Set a threshold between `0 - 100`. Default is `80`. Speed Degrades with lower threshold"""
         _ = self._setThresh(thresh)
