@@ -1,8 +1,8 @@
 Change Log
 ==========
-0.0.9 (02/06/2021)
+0.0.11 (09/07/2021)
 ------------------
-- Channels implemented between Goroutines
-- Fix high memory utilization and CPU usage
-- Directory crawling shifted to GoLang
-- Return type set to bool for FindMatch and SetThreshold Function
+- Add support for scanning single files
+- Shifted classifier creation to global scope
+- Add threading and maxRoutine optional parameters
+- Update copyright searching regex

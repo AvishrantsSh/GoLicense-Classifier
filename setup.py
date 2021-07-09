@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="golicense_classifier",
-    version="0.0.9",
+    version="0.0.11",
     author="AvishrantSh (Avishrant Sharma)",
     author_email="<avishrants@gmail.com>",
     description="A Python based License Classifier based on Google License Classifier",

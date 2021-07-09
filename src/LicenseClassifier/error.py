@@ -7,3 +7,8 @@ class PathIsFile(Exception):
     """Exception raised when given path does not correspond to a directory"""
     def __str__(self):
         return "The given path does not correspond to a directory"
+
+class InvalidParameter(Exception):
+    """Exception raised due to invalid parameters"""
+    def __str__(self):
+        return "Invalid Paramater"
