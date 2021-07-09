@@ -1,110 +1,118 @@
-import ctypes, time
-from os import walk
-from os.path import dirname, exists, join
+import ctypes
 import json
+from datetime import datetime, timezone
+from os import fsdecode, fsencode, walk
+from os.path import dirname, exists, join
 
-from LicenseClassifier.error import *
+
+class PathIsDir(Exception):
+    """Exception raised when given path does not correspond to file"""
+
+    def __str__(self):
+        return "The given path does not correspond to a file"
+
+
+class PathIsFile(Exception):
+    """Exception raised when given path does not correspond to a directory"""
+
+    def __str__(self):
+        return "The given path does not correspond to a directory"
+
+
+class InvalidParameter(Exception):
+    """Exception raised due to invalid parameters"""
+
+    def __str__(self):
+        return "Invalid Paramater"
 
 
 class LicenseClassifier:
+    """
+    Base Class
+    """
+
     _ROOT = dirname(__file__)
 
     # Shared Library
     _so = ctypes.cdll.LoadLibrary(join(_ROOT, "compiled/libmatch.so"))
     _init = _so.CreateClassifier
-    _init.argtypes = [ctypes.c_char_p]
-
-    _match = _so.FindMatch
-    _match.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int]
-    _match.restype = ctypes.c_bool
+    _init.argtypes = [ctypes.c_char_p, ctypes.c_double]
 
     _scanfile = _so.ScanFile
     _scanfile.argtypes = [ctypes.c_char_p]
     _scanfile.restype = ctypes.c_char_p
 
-    _setThresh = _so.SetThreshold
-    _setThresh.argtypes = [ctypes.c_int]
-    _setThresh.restype = ctypes.c_bool
-
-    def __init__(self):
-        self._init(join(LicenseClassifier._ROOT, "classifier/default/").encode("utf-8"))
-        pass
-
-    def analyze(self, root: str, threading: bool =True, output: str="result.json", maxRoutines=10) -> bool:
+    def __init__(self, threshold=0.8):
         """
-        Function to find valid license and copyright expressions for all files present in `root`.
-        
+        Initialize LicenseClassifier Object
+
         Parameters
         ----------
-        root : str
-            Path to root of directory to scan.
-        threading : bool
-            Use threading during scan. May consume significantly more memory and CPU.
-        output : str
-            Output path for JSON file. Default is `result.json`
-        maxRoutines : int
-            Maximum number of routines/threads to run concurrently.
+        threshold : float
+            Threshold for license scan results. `0 < threshold <= 1.0`
         """
-        if not exists(root):
+
+        self._init(
+            fsencode(join(LicenseClassifier._ROOT, "classifier/default/")), threshold
+        )
+
+    def scan_directory(self, location: str, output: str = "result.json") -> bool:
+        """
+        Function to find valid license and copyright expressions for files in `location`.
+
+        Parameters
+        ----------
+        location : str
+            Path to location of directory to scan.
+        """
+        if not exists(location):
             raise FileNotFoundError
 
-        if threading:
-            if maxRoutines < 0:
-                raise InvalidParameter
+        result = []
+        start_time = datetime.now(timezone.utc)
+        for (dirpath, _, filenames) in walk(location):
+            result += [self.scan_file(join(dirpath, file)) for file in filenames]
 
-            res = self._match(
-                root.encode("utf-8"),
-                output.encode("utf-8"),
-                maxRoutines,
-            )
-            return res
+        end_time = datetime.now(timezone.utc)
+        result = {
+            "header": [
+                {
+                    "tool_name": "Golicense-classifier",
+                    "input": location,
+                    "start_timestamp": start_time.strftime("%Y/%m/%d-%I:%M:%S:%p"),
+                    "end_timestamp": end_time.strftime("%Y/%m/%d-%I:%M:%S:%p"),
+                    "duration": (end_time - start_time).total_seconds(),
+                    "files_count": len(result),
+                    # ToDo: Add Error Expressions
+                    "errors": [],
+                }
+            ],
+            "files": result,
+        }
 
-        else:
-            result = []
-            start_time = time.time()
-            for (dirpath, _, filenames) in walk(root):
-                result += [self.scanFile(join(dirpath, file)) for file in filenames]
+        return result
 
-            end_time = time.time()
-            result = {
-                "header": [
-                    {
-                        "tool_name": "Golicense_classifier",
-                        "input": root,
-                        "start_timestamp": start_time,
-                        "end_timestamp": end_time,
-                        "duration": end_time - start_time,
-                        "files_count": len(result),
-                        # ToDo: Add Error Expressions
-                        "errors": [],
-                    }
-                ],
-                "files": result,
-            }
-            
-            out_file = open(output, "w")
-            json.dump(result, out_file, indent=4)
-
-    def scanFile(self, root):
+    def scan_file(self, location):
         """
-        Function to find valid license and copyright expressions in `root`.
-        
+        Function to find valid license and copyright expressions in `location`.
+
         Parameters
         ----------
-        root : str
+        location : str
             Path to file.
         """
-        if not exists(root):
+        # ToDo: DS Marshalling
+        # Translation of License Keys
+
+        if not exists(location):
             raise FileNotFoundError
 
-        jsonRes = self._scanfile(root.encode("utf-8")).decode('utf-8')
+        json_string = fsdecode(self._scanfile(fsencode(location)))
 
-        # Catch any errors generated during making scan results
-        if jsonRes[:5] == "Error":
-            raise ValueError(jsonRes[6:])
+        scan_result = json.loads(json_string)
 
-        return json.loads(jsonRes)
+        # Catch any errors generated during the process
+        if scan_result.get("error", None):
+            raise ValueError(scan_result["error"])
 
-    def setThreshold(self, thresh):
-        """Set a threshold between `0 - 100`. Default is `80`. Speed Degrades with lower threshold"""
-        _ = self._setThresh(thresh)
+        return scan_result
