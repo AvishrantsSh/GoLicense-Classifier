@@ -1,29 +1,7 @@
 import ctypes
 import json
+import os
 from datetime import datetime, timezone
-from os import fsdecode, fsencode, walk
-from os.path import dirname, exists, join
-
-
-class PathIsDir(Exception):
-    """Exception raised when given path does not correspond to file"""
-
-    def __str__(self):
-        return "The given path does not correspond to a file"
-
-
-class PathIsFile(Exception):
-    """Exception raised when given path does not correspond to a directory"""
-
-    def __str__(self):
-        return "The given path does not correspond to a directory"
-
-
-class InvalidParameter(Exception):
-    """Exception raised due to invalid parameters"""
-
-    def __str__(self):
-        return "Invalid Paramater"
 
 
 class LicenseClassifier:
@@ -31,10 +9,10 @@ class LicenseClassifier:
     Base Class
     """
 
-    _ROOT = dirname(__file__)
+    _ROOT = os.path.dirname(__file__)
 
     # Shared Library
-    _so = ctypes.cdll.LoadLibrary(join(_ROOT, "compiled/libmatch.so"))
+    _so = ctypes.cdll.LoadLibrary(os.path.join(_ROOT, "compiled/libmatch.so"))
     _init = _so.CreateClassifier
     _init.argtypes = [ctypes.c_char_p, ctypes.c_double]
 
@@ -42,7 +20,7 @@ class LicenseClassifier:
     _scanfile.argtypes = [ctypes.c_char_p]
     _scanfile.restype = ctypes.c_char_p
 
-    def __init__(self, threshold:float = 0.8) -> None:
+    def __init__(self, threshold: float = 0.8) -> None:
         """
         Initialize LicenseClassifier Object
 
@@ -51,8 +29,12 @@ class LicenseClassifier:
         threshold : float
             Threshold for license scan results. `0 < threshold <= 1.0`
         """
+        if not 0 < threshold <= 1:
+            raise ValueError("Threshold out of bounds (0 < threshold <= 1)")
 
-        self._init(fsencode(join(LicenseClassifier._ROOT, "licenses/")), threshold)
+        self._init(
+            os.fsencode(os.path.join(LicenseClassifier._ROOT, "licenses/")), threshold
+        )
 
     def scan_directory(self, location: str):
         """
@@ -63,13 +45,15 @@ class LicenseClassifier:
         location : str
             Path to location of directory to scan.
         """
-        if not exists(location):
+        if not os.path.exists(location):
             raise FileNotFoundError
 
         result = []
         start_time = datetime.now(timezone.utc)
-        for (dirpath, _, filenames) in walk(location):
-            result += [self.scan_file(join(dirpath, file)) for file in filenames]
+        for (dirpath, _, filenames) in os.walk(location):
+            result += [
+                self.scan_file(os.path.join(dirpath, file)) for file in filenames
+            ]
 
         result = sorted(result, key=lambda k: k["path"])
         end_time = datetime.now(timezone.utc)
@@ -91,7 +75,7 @@ class LicenseClassifier:
 
         return scan_result
 
-    def scan_file(self, location:str):
+    def scan_file(self, location: str):
         """
         Function to find valid license and copyright expressions in `location`.
 
@@ -102,10 +86,10 @@ class LicenseClassifier:
         """
         # ToDo: DS Marshalling
 
-        if not exists(location):
+        if not os.path.exists(location):
             raise FileNotFoundError
 
-        json_string = fsdecode(self._scanfile(fsencode(location)))
+        json_string = os.fsdecode(self._scanfile(os.fsencode(location)))
 
         scan_result = json.loads(json_string)
 
@@ -120,6 +104,7 @@ class LicenseClassifier:
             ]
             scan_result["licenses"][i]["key"] = mapping[0]
             scan_result["licenses"][i]["category"] = mapping[1]
+            scan_result["license_expressions"][i] = mapping[0]
 
         return scan_result
 

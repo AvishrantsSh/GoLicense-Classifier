@@ -10,5 +10,5 @@ dist/
 .vscode
 env
 *.json
-src/test.py
+src/tmp.py
 src/gen.py
