@@ -11,3 +11,4 @@ dist/
 env
 *.json
 src/test.py
+src/gen.py
