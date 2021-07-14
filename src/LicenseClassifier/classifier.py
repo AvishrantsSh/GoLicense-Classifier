@@ -17,7 +17,7 @@ class LicenseClassifier:
     _init.argtypes = [ctypes.c_char_p, ctypes.c_double]
 
     _scanfile = _so.ScanFile
-    _scanfile.argtypes = [ctypes.c_char_p]
+    _scanfile.argtypes = [ctypes.c_char_p, ctypes.c_int]
     _scanfile.restype = ctypes.c_char_p
 
     def __init__(self, threshold: float = 0.8) -> None:
@@ -45,9 +45,6 @@ class LicenseClassifier:
         location : str
             Path to location of directory to scan.
         """
-        if not os.path.exists(location):
-            raise FileNotFoundError
-
         result = []
         start_time = datetime.now(timezone.utc)
         for (dirpath, _, filenames) in os.walk(location):
@@ -75,7 +72,7 @@ class LicenseClassifier:
 
         return scan_result
 
-    def scan_file(self, location: str):
+    def scan_file(self, location: str, max_size=50):
         """
         Function to find valid license and copyright expressions in `location`.
 
@@ -83,13 +80,12 @@ class LicenseClassifier:
         ----------
         location : str
             Path to file.
+        max_size : int
+            Maximum size of file in MB. Default is set to 50MB. Set `max_size < 0` to ignore size constraints
         """
         # ToDo: DS Marshalling
 
-        if not os.path.exists(location):
-            raise FileNotFoundError
-
-        json_string = os.fsdecode(self._scanfile(os.fsencode(location)))
+        json_string = os.fsdecode(self._scanfile(os.fsencode(location), max_size))
 
         scan_result = json.loads(json_string)
 

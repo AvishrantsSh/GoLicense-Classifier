@@ -14,7 +14,6 @@ class TestLicenseClassifier(unittest.TestCase):
         with self.assertRaises(ValueError):
             LicenseClassifier(0)
 
-        
     def test_classifier_scan_file_format(self):
         test_file = tempfile.mkstemp()[1]
         try:
@@ -26,7 +25,8 @@ class TestLicenseClassifier(unittest.TestCase):
                 "licenses",
                 "license_expressions",
                 "copyrights",
-                "scan_error",
+                "holders",
+                "scan_errors",
             ]
 
             self.assertEqual(sorted(expected), sorted(scan_results.keys()))
@@ -36,12 +36,17 @@ class TestLicenseClassifier(unittest.TestCase):
 
     def test_classifier_scan_file_file_not_found_exception(self):
         l = LicenseClassifier()
-        self.assertRaises(FileNotFoundError, l.scan_file, "")
+        scan_results = l.scan_file("")
+        self.assertEqual(
+            scan_results.get("scan_errors", None), ['stat : no such file or directory', "open : no such file or directory"]
+        )
 
     def test_classifier_scan_file_is_directory_exception(self):
         l = LicenseClassifier()
         scan_results = l.scan_file("/")
-        self.assertEqual(scan_results.get("scan_error", None), "read /: is a directory")
+        self.assertEqual(
+            scan_results.get("scan_errors", None), ["read /: is a directory"]
+        )
 
     def test_classifier_scan_file_license_info(self):
         l = LicenseClassifier()
@@ -77,17 +82,19 @@ class TestLicenseClassifier(unittest.TestCase):
         expected = {
             "copyrights": [
                 {
-                    "notification": "Copyright (c) 2021 AvishrantSharma",
+                    "value": "Copyright (c) 2021 AvishrantSharma",
                     "start_index": 13,
                     "end_index": 48,
-                    "holder": "AvishrantSharma",
                 }
-            ]
+            ],
+            "holders": [
+                {"value": "AvishrantSharma", "start_index": 32, "end_index": 47}
+            ],
         }
 
         self.assertEqual(len(scan_results.get("copyrights", {})), 1)
-
         self.assertEqual(expected["copyrights"], scan_results.get("copyrights", {}))
+        self.assertEqual(expected["holders"], scan_results.get("holders", {}))
 
 
 if __name__ == "__main__":

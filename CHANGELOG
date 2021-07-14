@@ -1,8 +1,7 @@
 Change Log
 ==========
-0.0.11 (09/07/2021)
+0.0.13 (13/07/2021)
 ------------------
-- Add support for scanning single files
-- Shifted classifier creation to global scope
-- Add threading and maxRoutine optional parameters
-- Update copyright searching regex
+- Errors are now part of scan_result and not raised (except Threshold Value Error)
+- Removed mulithreading and go routines
+- Add unittests
