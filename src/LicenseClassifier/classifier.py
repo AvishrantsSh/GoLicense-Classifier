@@ -9,16 +9,16 @@ class LicenseClassifier:
     Base Class
     """
 
-    _ROOT = os.path.dirname(__file__)
+    __ROOT = os.path.dirname(__file__)
 
     # Shared Library
-    _so = ctypes.cdll.LoadLibrary(os.path.join(_ROOT, "compiled/libmatch.so"))
-    _init = _so.CreateClassifier
-    _init.argtypes = [ctypes.c_char_p, ctypes.c_double]
+    __so = ctypes.cdll.LoadLibrary(os.path.join(__ROOT, "compiled/libmatch.so"))
+    __init = __so.CreateClassifier
+    __init.argtypes = [ctypes.c_char_p, ctypes.c_double]
 
-    _scanfile = _so.ScanFile
-    _scanfile.argtypes = [ctypes.c_char_p, ctypes.c_int]
-    _scanfile.restype = ctypes.c_char_p
+    __scanfile = __so.ScanFile
+    __scanfile.argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_bool]
+    __scanfile.restype = ctypes.c_char_p
 
     def __init__(self, threshold: float = 0.8) -> None:
         """
@@ -32,11 +32,11 @@ class LicenseClassifier:
         if not 0 < threshold <= 1:
             raise ValueError("Threshold out of bounds (0 < threshold <= 1)")
 
-        self._init(
-            os.fsencode(os.path.join(LicenseClassifier._ROOT, "licenses/")), threshold
+        self.__init(
+            os.fsencode(os.path.join(LicenseClassifier.__ROOT, "licenses/")), threshold
         )
 
-    def scan_directory(self, location: str):
+    def scan_directory(self, location: str, max_size=10, use_buffer=False):
         """
         Function to find valid license and copyright expressions for files in `location`.
 
@@ -44,12 +44,21 @@ class LicenseClassifier:
         ----------
         location : str
             Path to location of directory to scan.
+        max_size : int
+            Maximum size of file in MB. Default is set to 10MB. Set `max_size < 0` to ignore size constraints
+        use_buffer : bool
+            `(Experimental)` Set `True` to use buffered file scanning. `max_size` will be used as buffer size.
         """
         result = []
         start_time = datetime.now(timezone.utc)
         for (dirpath, _, filenames) in os.walk(location):
             result += [
-                self.scan_file(os.path.join(dirpath, file)) for file in filenames
+                self.scan_file(
+                    os.path.join(dirpath, file),
+                    max_size=max_size,
+                    use_buffer=use_buffer,
+                )
+                for file in filenames
             ]
 
         result = sorted(result, key=lambda k: k["path"])
@@ -64,7 +73,9 @@ class LicenseClassifier:
                     "duration": (end_time - start_time).total_seconds(),
                     "files_count": len(result),
                     # ToDo: Add Error Expressions
-                    "errors": [],
+                    "errors": ['"' + location + '" does not exist']
+                    if not result
+                    else [],
                 }
             ],
             "files": result,
@@ -72,7 +83,7 @@ class LicenseClassifier:
 
         return scan_result
 
-    def scan_file(self, location: str, max_size=50):
+    def scan_file(self, location: str, max_size=10, use_buffer=False):
         """
         Function to find valid license and copyright expressions in `location`.
 
@@ -81,11 +92,15 @@ class LicenseClassifier:
         location : str
             Path to file.
         max_size : int
-            Maximum size of file in MB. Default is set to 50MB. Set `max_size < 0` to ignore size constraints
+            Maximum size of file in MB. Default is set to 10MB. Set `max_size < 0` to ignore size constraints
+        use_buffer : bool
+            `(Experimental)` Set `True` to use buffered file scanning. `max_size` will be used as buffer size. Recommended for large files.
         """
         # ToDo: DS Marshalling
 
-        json_string = os.fsdecode(self._scanfile(os.fsencode(location), max_size))
+        json_string = os.fsdecode(
+            self.__scanfile(os.fsencode(location), max_size, use_buffer)
+        )
 
         scan_result = json.loads(json_string)
 
@@ -141,7 +156,7 @@ license_classifier_to_scancode_mapping = {
     "BSD-4-Clause": ["bsd-original", "Permissive"],
     "BSD-Protection": ["bsd-protection", "Copyleft"],
     "BSL-1.0": ["boost-1.0", "Permissive"],
-    "BabelstoneIDS": ["BabelstoneIDS", ""],
+    "BabelstoneIDS": ["BabelstoneIDS", "Public Domain"],
     "Beerware": ["beerware", "Permissive"],
     "BitTorrent-1.1": ["bittorrent-1.1", "Copyleft Limited"],
     "Business-Source-License-1.1": ["bsl-1.1", "Source-available"],

@@ -1,7 +1,8 @@
 Change Log
 ==========
-0.0.13 (13/07/2021)
+0.0.15 (18/07/2021)
 ------------------
-- Errors are now part of scan_result and not raised (except Threshold Value Error)
-- Removed mulithreading and go routines
-- Add unittests
+- Add experimental parameter 'use_buffer' for large files.
+- Generate License mapping compaitble with Scancode.io
+- Update BabelStoneIDS license category
+- Add max_size parameter to stop scan

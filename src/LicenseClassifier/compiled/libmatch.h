@@ -69,7 +69,7 @@ extern "C" {
 #endif
 
 extern void CreateClassifier(char* license, GoFloat64 defaultThreshold);
-extern char* ScanFile(char* fpaths, GoInt maxSize);
+extern char* ScanFile(char* fpaths, GoInt maxSize, GoUint8 useBuffer);
 
 #ifdef __cplusplus
 }
