@@ -1,4 +1,4 @@
-# Golicense-Classifier
+# GoLicense-Classifier
 A Python based module to find valid copyright and license expressions in a file.
 
 _Note: This module is based on Google LicenseClassifier._
