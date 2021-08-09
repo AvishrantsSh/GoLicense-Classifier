@@ -20,6 +20,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install dependencies
+        run: make dev
+
       - name: Validate code format
         run: make check
 

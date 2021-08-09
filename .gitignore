@@ -1,7 +1,6 @@
 __pycache__/
 *.py[cod]
 *.pyc
-*.yml
 *$py.class
 .Python
 build/
@@ -12,3 +11,10 @@ env
 *.json
 src/tmp.py
 src/gen.py
+include
+
+# environment
+bin
+lib
+lib64
+share
