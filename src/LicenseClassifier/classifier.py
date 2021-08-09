@@ -38,16 +38,19 @@ class LicenseClassifier:
 
     def scan_directory(self, location: str, max_size=10, use_buffer=False):
         """
-        Function to find valid license and copyright expressions for files in `location`.
+        Function to find valid license and copyright expressions
+        for files in `location`.
 
         Parameters
         ----------
         location : str
             Path to location of directory to scan.
         max_size : int
-            Maximum size of file in MB. Default is set to 10MB. Set `max_size < 0` to ignore size constraints
+            Maximum size of file in MB. Default is set to 10MB.
+            Set `max_size < 0` to ignore size constraints
         use_buffer : bool
-            `(Experimental)` Set `True` to use buffered file scanning. `max_size` will be used as buffer size.
+            `(Experimental)` Set `True` to use buffered file scanning.
+            `max_size` will be used as buffer size.
         """
         result = []
         start_time = datetime.now(timezone.utc)
@@ -92,9 +95,11 @@ class LicenseClassifier:
         location : str
             Path to file.
         max_size : int
-            Maximum size of file in MB. Default is set to 10MB. Set `max_size < 0` to ignore size constraints
+            Maximum size of file in MB. Default is set to 10MB.
+            Set `max_size < 0` to ignore size constraints
         use_buffer : bool
-            `(Experimental)` Set `True` to use buffered file scanning. `max_size` will be used as buffer size. Recommended for large files.
+            `(Experimental)` Set `True` to use buffered file scanning.
+            `max_size` will be used as buffer size. Recommended for large files.
         """
         # ToDo: DS Marshalling
 

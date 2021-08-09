@@ -8,7 +8,8 @@ setuptools.setup(
     version="0.0.15",
     author="AvishrantSh (Avishrant Sharma)",
     author_email="<avishrants@gmail.com>",
-    description="A Python based License Classification and Copyright Statement Detection tool based on Google License Classifier",
+    description="A Python based License Classification and Copyright\
+         Statement Detection tool based on Google License Classifier",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/AvishrantsSh/LicensePackage",

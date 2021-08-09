@@ -1,9 +1,10 @@
-from multiprocessing.sharedctypes import Value
-import unittest
-from pathlib import Path
-from LicenseClassifier.classifier import LicenseClassifier
 import tempfile
+import unittest
+from multiprocessing.sharedctypes import Value
 from os import remove
+from pathlib import Path
+
+from LicenseClassifier.classifier import LicenseClassifier
 
 
 class TestLicenseClassifier(unittest.TestCase):
@@ -17,8 +18,8 @@ class TestLicenseClassifier(unittest.TestCase):
     def test_classifier_scan_file_format(self):
         test_file = tempfile.mkstemp()[1]
         try:
-            l = LicenseClassifier()
-            scan_results = l.scan_file(test_file)
+            classifier = LicenseClassifier()
+            scan_results = classifier.scan_file(test_file)
 
             expected = [
                 "path",
@@ -35,22 +36,23 @@ class TestLicenseClassifier(unittest.TestCase):
             remove(test_file)
 
     def test_classifier_scan_file_file_not_found_exception(self):
-        l = LicenseClassifier()
-        scan_results = l.scan_file("")
+        classifier = LicenseClassifier()
+        scan_results = classifier.scan_file("")
         self.assertEqual(
-            scan_results.get("scan_errors", None), ['stat : no such file or directory', "open : no such file or directory"]
+            scan_results.get("scan_errors", None),
+            ["stat : no such file or directory", "open : no such file or directory"],
         )
 
     def test_classifier_scan_file_is_directory_exception(self):
-        l = LicenseClassifier()
-        scan_results = l.scan_file("/")
+        classifier = LicenseClassifier()
+        scan_results = classifier.scan_file("/")
         self.assertEqual(
             scan_results.get("scan_errors", None), ["read /: is a directory"]
         )
 
     def test_classifier_scan_file_license_info(self):
-        l = LicenseClassifier()
-        scan_results = l.scan_file(str(self.data_location / "LICENSE"))
+        classifier = LicenseClassifier()
+        scan_results = classifier.scan_file(str(self.data_location / "LICENSE"))
 
         expected = {
             "licenses": [
@@ -76,8 +78,8 @@ class TestLicenseClassifier(unittest.TestCase):
         )
 
     def test_classifier_scan_file_copyright_info(self):
-        l = LicenseClassifier()
-        scan_results = l.scan_file(str(self.data_location / "LICENSE"))
+        classifier = LicenseClassifier()
+        scan_results = classifier.scan_file(str(self.data_location / "LICENSE"))
 
         expected = {
             "copyrights": [
