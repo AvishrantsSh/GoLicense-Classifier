@@ -11,7 +11,7 @@ class LicenseClassifier:
 
     __ROOT = os.path.dirname(__file__)
 
-    # Shared Library
+    # Shared Library Initialization
     __so = ctypes.cdll.LoadLibrary(os.path.join(__ROOT, "compiled/libmatch.so"))
     __init = __so.CreateClassifier
     __init.argtypes = [ctypes.c_char_p, ctypes.c_double]
@@ -32,11 +32,14 @@ class LicenseClassifier:
         if not 0 < threshold <= 1:
             raise ValueError("Threshold out of bounds (0 < threshold <= 1)")
 
-        self.__init(
-            os.fsencode(os.path.join(LicenseClassifier.__ROOT, "licenses/")), threshold
-        )
+        self.__init(os.fsencode(os.path.join(self.__ROOT, "licenses/")), threshold)
 
-    def scan_directory(self, location: str, max_size=10, use_buffer=False):
+        self._dlclose_func = ctypes.cdll.LoadLibrary("").dlclose
+        self._dlclose_func.argtypes = [ctypes.c_void_p]
+
+    def scan_directory(
+        self, location: str, max_size=10, use_buffer=False, use_scancode_mapping=True
+    ):
         """
         Function to find valid license and copyright expressions
         for files in `location`.
@@ -51,6 +54,14 @@ class LicenseClassifier:
         use_buffer : bool
             `(Experimental)` Set `True` to use buffered file scanning.
             `max_size` will be used as buffer size.
+        use_scancode_mapping : bool
+            Set to `True` if you want to use Scancode license key mappings.
+            Default is set to `True`.
+
+        Returns
+        -------
+        dict
+            A dictionary object containing scan headers and details
         """
         result = []
         start_time = datetime.now(timezone.utc)
@@ -60,6 +71,7 @@ class LicenseClassifier:
                     os.path.join(dirpath, file),
                     max_size=max_size,
                     use_buffer=use_buffer,
+                    use_scancode_mapping=use_scancode_mapping,
                 )
                 for file in filenames
             ]
@@ -86,7 +98,9 @@ class LicenseClassifier:
 
         return scan_result
 
-    def scan_file(self, location: str, max_size=10, use_buffer=False):
+    def scan_file(
+        self, location: str, max_size=10, use_buffer=False, use_scancode_mapping=True
+    ):
         """
         Function to find valid license and copyright expressions in `location`.
 
@@ -100,9 +114,15 @@ class LicenseClassifier:
         use_buffer : bool
             `(Experimental)` Set `True` to use buffered file scanning.
             `max_size` will be used as buffer size. Recommended for large files.
-        """
-        # ToDo: DS Marshalling
+        use_scancode_mapping : bool
+            Set to `True` if you want to use Scancode license key mappings.
+            Default is set to `True`.
 
+        Returns
+        -------
+        dict
+            A dictionary object containing scan details
+        """
         json_string = os.fsdecode(
             self.__scanfile(os.fsencode(location), max_size, use_buffer)
         )
@@ -113,14 +133,15 @@ class LicenseClassifier:
         if scan_result.get("error", None):
             raise ValueError(scan_result["error"])
 
-        # Update license key with scancode.io mapping
-        for i in range(len(scan_result["licenses"])):
-            mapping = license_classifier_to_scancode_mapping[
-                scan_result["licenses"][i]["key"]
-            ]
-            scan_result["licenses"][i]["key"] = mapping[0]
-            scan_result["licenses"][i]["category"] = mapping[1]
-            scan_result["license_expressions"][i] = mapping[0]
+        if use_scancode_mapping:
+            # Update license key with scancode.io mapping
+            for i in range(len(scan_result["licenses"])):
+                mapping = license_classifier_to_scancode_mapping[
+                    scan_result["licenses"][i]["key"]
+                ]
+                scan_result["licenses"][i]["key"] = mapping[0]
+                scan_result["licenses"][i]["category"] = mapping[1]
+                scan_result["license_expressions"][i] = mapping[0]
 
         return scan_result
 
