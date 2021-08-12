@@ -105,5 +105,5 @@ To get started, read the [Contributing Guide](CONTRIBUTING.md).
 References
 ----------
 1. Google LicenseClassfifer V2 https://github.com/google/licenseclassifier/
-
-2. Ctypes https://docs.python.org/3/library/ctypes.html
+2. Ctypes Shared Library Code https://github.com/AvishrantsSh/Ctypes_LicenseClassifier
+3. Ctypes https://docs.python.org/3/library/ctypes.html
